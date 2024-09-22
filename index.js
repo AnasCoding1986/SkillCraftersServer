@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require("dotenv").config();
-const port = process.env.PORT || 9000;
+const port = process.env.PORT || 5000;
 
 const app = express()
 
@@ -31,8 +31,16 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    const jobsCollection = client.db("SkillCrafters").collection("jobs");
+    const bidsCollection = client.db("SkillCrafters").collection("bids");
+
+    // Get All jobs data from db
+    app.get("/jobs", async (req,res) => {
+      const result = await jobsCollection.find().toArray();
+
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
