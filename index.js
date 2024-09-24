@@ -50,11 +50,16 @@ async function run() {
       res.send(result)
     })
 
+    // Save a job data in db
+    app.post("/job", async(req,res) => {
+      const jobData = req.body;
+      const result = jobsCollection.insertOne(jobData);
+      res.send(result)
+    })
+
     // Save a bid data in db
     app.post("/bid", async(req,res) => {
       const bidData = req.body;
-      console.log(bidData);
-      return
       const result = bidsCollection.insertOne(bidData);
       res.send(result)
     })
