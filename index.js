@@ -44,9 +44,16 @@ async function run() {
     // Get Single jobs data from db
     app.get("/job/:id", async (req,res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = {_id: new ObjectId(id)};
       const result = await jobsCollection.findOne(query);
+      res.send(result)
+    })
 
+    // Get all jobs postedby a user
+    app.get("/jobs/:email", async(req,res) => {
+      const email = req.params.email;
+      const query = {"buyer.email":email};
+      const result = await jobsCollection.find(query).toArray();
       res.send(result)
     })
 
@@ -61,6 +68,14 @@ async function run() {
     app.post("/bid", async(req,res) => {
       const bidData = req.body;
       const result = bidsCollection.insertOne(bidData);
+      res.send(result)
+    })
+
+    // Delete a job
+    app.delete("/job/:id", async(req,res)=> {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await jobsCollection.deleteOne(query);
       res.send(result)
     })
 
