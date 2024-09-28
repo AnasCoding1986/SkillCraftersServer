@@ -6,10 +6,10 @@ const port = process.env.PORT || 5000;
 
 const app = express()
 
-const corsOptions={
-    origin: ["http://localhost:5173", "http://localhost:5174"],
-    Credentials: true,
-    optionSuccessStatus: 200
+const corsOptions = {
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+  Credentials: true,
+  optionSuccessStatus: 200
 }
 
 
@@ -35,63 +35,81 @@ async function run() {
     const bidsCollection = client.db("SkillCrafters").collection("bids");
 
     // Get All jobs data from db
-    app.get("/jobs", async (req,res) => {
+    app.get("/jobs", async (req, res) => {
       const result = await jobsCollection.find().toArray();
 
       res.send(result)
     })
 
     // Get Single jobs data from db
-    app.get("/job/:id", async (req,res) => {
+    app.get("/job/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await jobsCollection.findOne(query);
       res.send(result)
     })
 
     // Get all jobs postedby a user
-    app.get("/jobs/:email", async(req,res) => {
+    app.get("/jobs/:email", async (req, res) => {
       const email = req.params.email;
-      const query = {"buyer.email":email};
+      const query = { "buyer.email": email };
       const result = await jobsCollection.find(query).toArray();
       res.send(result)
     })
 
     // Save a job data in db
-    app.post("/job", async(req,res) => {
+    app.post("/job", async (req, res) => {
       const jobData = req.body;
       const result = jobsCollection.insertOne(jobData);
       res.send(result)
     })
 
-    // Save a bid data in db
-    app.post("/bid", async(req,res) => {
-      const bidData = req.body;
-      const result = bidsCollection.insertOne(bidData);
-      res.send(result)
-    })
-
     // Delete a job
-    app.delete("/job/:id", async(req,res)=> {
+    app.delete("/job/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await jobsCollection.deleteOne(query);
       res.send(result)
     })
 
     // update a job
-    app.put("/job/:id", async(req,res)=>{
+    app.put("/job/:id", async (req, res) => {
       const id = req.params.id;
       const jobData = req.body;
-      const query = {_id: new ObjectId(id)};
-      const options = {upsert: true};
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
       const updateDoc = {
         $set: {
           ...jobData
         }
-        
+
       }
-      const result = await jobsCollection.updateOne(query,updateDoc,options);
+      const result = await jobsCollection.updateOne(query, updateDoc, options);
+      res.send(result)
+    })
+
+    // BidCollection Crud Operations
+
+    // Get bids data from db
+    app.get("/my-bids/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await bidsCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    // Get bid-request data from db
+    app.get("/bid-request/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { "buyer.email": email };
+      const result = bidsCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    // Save a bid data in db
+    app.post("/bid", async (req, res) => {
+      const bidData = req.body;
+      const result = bidsCollection.insertOne(bidData);
       res.send(result)
     })
 
@@ -107,8 +125,8 @@ run().catch(console.dir);
 
 
 
-app.get("/", (req,res)=> {
-    res.send("Hello from SkillCrafters ......")
+app.get("/", (req, res) => {
+  res.send("Hello from SkillCrafters ......")
 })
 
-app.listen(port, ()=>console.log(`Server running on port ${port}`))
+app.listen(port, () => console.log(`Server running on port ${port}`))
