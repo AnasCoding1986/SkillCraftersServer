@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -33,6 +34,15 @@ async function run() {
   try {
     const jobsCollection = client.db("SkillCrafters").collection("jobs");
     const bidsCollection = client.db("SkillCrafters").collection("bids");
+
+    // jwt generate
+    app.post("/jwt", async (req,res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{
+        expiresIn: '365d'
+      })
+      res.send({token})
+    })
 
     // Get All jobs data from db
     app.get("/jobs", async (req, res) => {
