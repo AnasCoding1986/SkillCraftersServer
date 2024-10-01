@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
+const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -9,15 +10,12 @@ const app = express()
 
 const corsOptions = {
   origin: ["http://localhost:5173", "http://localhost:5174"],
-  Credentials: true,
+  credentials: true,
   optionSuccessStatus: 200
 }
 
-
 app.use(cors(corsOptions))
 app.use(express.json())
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zdajqzn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -41,8 +39,27 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{
         expiresIn: '365d'
       })
-      res.send({token})
+      res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV = "production",
+        sameSite: process.env.NODE_ENV = "production" ? "none" : "strict",
+      })
+      .send({success: true})
     })
+
+    // clear cookies
+    app.get("/logout", (req,res) => {
+      res
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV = "production",
+        sameSite: process.env.NODE_ENV = "production" ? "none" : "strict",
+        maxAge: 0
+      })
+      .send({success: true})
+    })
+
 
     // Get All jobs data from db
     app.get("/jobs", async (req, res) => {
