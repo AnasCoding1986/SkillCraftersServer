@@ -19,20 +19,20 @@ app.use(express.json())
 app.use(cookieParser())
 
 // verify jwt middlewire
-const verifyToken = (req,res,next) =>{
+const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
-  if (!token) return res.status(401).send({message:"Unauthorized access"});
+  if (!token) return res.status(401).send({ message: "Unauthorized access" });
   if (token) {
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,decoded)=>{
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
-        return res.status(401).send({message:"Unauthorized access"})
+        return res.status(401).send({ message: "Unauthorized access" })
       }
       console.log(decoded);
       req.user = decoded;
       next()
     })
-  }  
-  
+  }
+
 }
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zdajqzn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -52,30 +52,30 @@ async function run() {
     const bidsCollection = client.db("SkillCrafters").collection("bids");
 
     // jwt generate
-    app.post("/jwt", async (req,res) => {
+    app.post("/jwt", async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '365d'
       })
       res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV = "production",
-        sameSite: process.env.NODE_ENV = "production" ? "none" : "strict",
-      })
-      .send({success: true})
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV = "production",
+          sameSite: process.env.NODE_ENV = "production" ? "none" : "strict",
+        })
+        .send({ success: true })
     })
 
     // clear cookies
-    app.get("/logout", (req,res) => {
+    app.get("/logout", (req, res) => {
       res
-      .clearCookie("token", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV = "production",
-        sameSite: process.env.NODE_ENV = "production" ? "none" : "strict",
-        maxAge: 0
-      })
-      .send({success: true})
+        .clearCookie("token", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV = "production",
+          sameSite: process.env.NODE_ENV = "production" ? "none" : "strict",
+          maxAge: 0
+        })
+        .send({ success: true })
     })
 
 
@@ -95,11 +95,11 @@ async function run() {
     })
 
     // Get all jobs postedby a user
-    app.get("/jobs/:email", verifyToken, async (req, res) => { 
+    app.get("/jobs/:email", verifyToken, async (req, res) => {
       const tokenEmail = req.user.email;
       const email = req.params.email;
-      if (tokenEmail!==email) {
-        return res.status(403).send({message:"Forbidden access"})
+      if (tokenEmail !== email) {
+        return res.status(403).send({ message: "Forbidden access" })
       }
       const query = { "buyer.email": email };
       const result = await jobsCollection.find(query).toArray();
@@ -158,19 +158,33 @@ async function run() {
     // Save a bid data in db
     app.post("/bid", async (req, res) => {
       const bidData = req.body;
+
+      const query = {
+        email: bidData.email,
+        jobId: bidData.jobId,
+      }
+
+      const alreadyExists = await bidsCollection.findOne(query);
+
+      if (alreadyExists) {
+        return res
+          .status(400)
+          .send("You have alredy Placed a bid for this job")
+      }
+
       const result = bidsCollection.insertOne(bidData);
       res.send(result)
     })
 
     // update bid status
-    app.patch("/bid/:id", async(req,res)=>{
+    app.patch("/bid/:id", async (req, res) => {
       const id = req.params.id;
       const status = req.body;
-      const query = {_id: new ObjectId(id)};
-      const updatedDoc={
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
         $set: status,
       };
-      const result = await bidsCollection.updateOne(query,updatedDoc);
+      const result = await bidsCollection.updateOne(query, updatedDoc);
       res.send(result)
     })
 
