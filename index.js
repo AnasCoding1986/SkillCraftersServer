@@ -137,6 +137,25 @@ async function run() {
       res.send(result)
     })
 
+    // Get all job data in db
+    app.get("/jobs-all", async (req, res) => {
+      const limit = req.query.limit;
+      const cpage = req.query.cpage;
+      console.log(limit);
+      console.log(cpage);
+      
+      const result = await jobsCollection.find().toArray();
+
+      res.send(result)
+    })
+
+    // Get all job count data in db
+    app.get("/jobs-count", async (req, res) => {
+      const result = await jobsCollection.countDocuments();
+      res.send({result});
+      console.log(result);
+    })
+
     // BidCollection Crud Operations
 
     // Get bids data from db
