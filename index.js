@@ -139,12 +139,14 @@ async function run() {
 
     // Get all job data in db
     app.get("/jobs-all", async (req, res) => {
-      const limit = req.query.limit;
-      const cpage = req.query.cpage;
-      console.log(limit);
-      console.log(cpage);
+      const limit = parseInt(req.query.limit);
+      const cpage = parseInt(req.query.cpage)-1;
       
-      const result = await jobsCollection.find().toArray();
+      const result = await jobsCollection
+      .find()
+      .skip(limit*cpage)
+      .limit(limit)
+      .toArray();
 
       res.send(result)
     })
