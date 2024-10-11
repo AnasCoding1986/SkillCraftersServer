@@ -141,9 +141,13 @@ async function run() {
     app.get("/jobs-all", async (req, res) => {
       const limit = parseInt(req.query.limit);
       const cpage = parseInt(req.query.cpage)-1;
+      const filter = req.query.filter;
+      
+      let query = {};
+      if (filter) query = { category: filter };      
       
       const result = await jobsCollection
-      .find()
+      .find(query)
       .skip(limit*cpage)
       .limit(limit)
       .toArray();
@@ -153,10 +157,28 @@ async function run() {
 
     // Get all job count data in db
     app.get("/jobs-count", async (req, res) => {
-      const result = await jobsCollection.countDocuments();
-      res.send({result});
-      console.log(result);
-    })
+      try {
+        const filter = req.query.filter; // Get filter from query string
+        console.log("Filter:", filter);
+    
+        // Initialize query as an empty object
+        let query = {};
+    
+        // If a valid filter is provided, use it to filter jobs by category
+        if (filter && typeof filter === "string" && filter.trim().length > 0) {
+          query = { category: filter.trim() }; // Trim to avoid accidental spaces
+        }
+    
+        // Count documents that match the query
+        const result = await jobsCollection.countDocuments(query);
+        res.send({ count: result }); // Send back the count in a more descriptive format
+        console.log("Document count:", result);
+      } catch (error) {
+        console.error("Error counting documents:", error);
+        res.status(500).send({ error: "Failed to count jobs" });
+      }
+    });
+    
 
     // BidCollection Crud Operations
 
