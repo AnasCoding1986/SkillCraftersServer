@@ -138,32 +138,42 @@ async function run() {
     })
 
     // Get all job data in db
+    // Get all job data in db
     app.get("/jobs-all", async (req, res) => {
       const limit = parseInt(req.query.limit);
-      const cpage = parseInt(req.query.cpage)-1;
+      const cpage = parseInt(req.query.cpage) - 1;
       const filter = req.query.filter;
       const sort = req.query.sort;
-      
+      const search = req.query.search;
+
       let query = {};
-      if (filter) query = { category: filter }; 
+
+      if (search) {
+        query.job_title = { $regex: search, $options: "i" }; // Using regex for case-insensitive search
+      }
+
+      if (filter) {
+        query.category = filter;
+      }
 
       let options = {};
-      if (sort) options = { sort: {deadline: sort === "asc" ? 1 : -1} }      
-      
-      const result = await jobsCollection
-      .find(query, options)
-      .skip(limit*cpage)
-      .limit(limit)
-      .toArray();
+      if (sort) options.sort = { deadline: sort === "asc" ? 1 : -1 };
 
-      res.send(result)
-    })
+      const result = await jobsCollection
+        .find(query, options)
+        .skip(limit * cpage)
+        .limit(limit)
+        .toArray();
+
+      res.send(result);
+    });
+
 
     // Get all job count data in db
-    app.get("/jobs-count", async (req, res) => {  
+    app.get("/jobs-count", async (req, res) => {
 
       const result = await jobsCollection.countDocuments();
-      res.send({result});
+      res.send({ result });
       console.log(result);
     })
 
