@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 const app = express()
 
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: ["http://localhost:5173", "http://localhost:5174", "https://skillcrafters-a05d7.web.app/"],
   credentials: true,
   optionSuccessStatus: 200
 }
@@ -171,10 +171,8 @@ async function run() {
 
     // Get all job count data in db
     app.get("/jobs-count", async (req, res) => {
-
       const result = await jobsCollection.countDocuments();
       res.send({ result });
-      console.log(result);
     })
 
     // BidCollection Crud Operations
